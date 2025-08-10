@@ -116,13 +116,13 @@ app.post("/api/users/:id/exercises", async (req, res) => {
       user_id: req.params.id,
       description: req.body.description,
       duration: Number(req.body.duration),
-      date: new Date(Date.parse(req.body.date)),
+      date: req.body.date ? new Date(Date.parse(req.body.date)) : new Date(),
     });
     if (exercise) {
       res.json({
         _id: exercise.id,
         username: user.username,
-        date: exercise.date.toString().split(" ").slice(0, 4).join(" "),
+        date: exercise.date.toDateString(),
         duration: exercise.duration,
         description: exercise.description,
       });
@@ -153,7 +153,7 @@ app.get("/api/users/:id/logs", async (req, res) => {
       log: exercises.map((exercise) => ({
         description: exercise.description,
         duration: exercise.duration,
-        date: exercise.date.toString().split(" ").slice(0, 4).join(" "),
+        date: exercise.date.toDateString(),
       })),
     });
   } else {
