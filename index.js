@@ -70,6 +70,14 @@ const findExercise = async (querry) => {
   return result;
 };
 
+const findExercises = async (querry) => {
+  const result = await Exercise.find(querry, (err, data) => {
+    if (err) return console.error(err);
+    return data;
+  });
+  return result;
+};
+
 const saveExercise = async (data) => {
   let exercise = await findExercise(data);
   if (exercise) {
@@ -119,6 +127,27 @@ app.post("/api/users/:id/exercises", async (req, res) => {
         description: exercise.description,
       });
     }
+  }
+});
+
+app.get("/api/users/:id/logs", async (req, res) => {
+  const user = await findUser({ _id: req.params.id });
+  if (user) {
+    const exercises = await findExercises({ user_id: user.id });
+    res.json({
+      _id: user.id,
+      username: user.username,
+      count: exercises.length,
+      log: exercises.map((exercise) => ({
+        description: exercise.description,
+        duration: exercise.duration,
+        date: exercise.date.toString().split(" ").slice(0, 4).join(" "),
+      })),
+    });
+  } else {
+    res.json({
+      error: "Invalid User",
+    });
   }
 });
 
