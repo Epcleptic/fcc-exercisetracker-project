@@ -29,6 +29,14 @@ const findUser = async (querry) => {
   return result;
 };
 
+const findUsers = async () => {
+  const result = await User.find({}, (err, data) => {
+    if (err) return console.error(err);
+    return data;
+  });
+  return result;
+};
+
 const saveUser = async (data) => {
   let user = process.env.UNIQUE_USERS
     ? await findUser({ username: data })
@@ -109,6 +117,22 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
+app.get("/api/users", async (req, res) => {
+  const users = await findUsers();
+  if (users) {
+    res.json(
+      users.map((user) => ({
+        _id: user._id,
+        username: user.username,
+      }))
+    );
+  } else {
+    res.json({
+      error: "No Users Found",
+    });
+  }
+});
+
 app.post("/api/users/:id/exercises", async (req, res) => {
   const user = await findUser({ _id: req.params.id });
   if (user) {
@@ -120,7 +144,7 @@ app.post("/api/users/:id/exercises", async (req, res) => {
     });
     if (exercise) {
       res.json({
-        _id: exercise.id,
+        _id: user.id,
         username: user.username,
         date: exercise.date.toDateString(),
         duration: exercise.duration,
