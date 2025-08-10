@@ -133,7 +133,19 @@ app.post("/api/users/:id/exercises", async (req, res) => {
 app.get("/api/users/:id/logs", async (req, res) => {
   const user = await findUser({ _id: req.params.id });
   if (user) {
-    const exercises = await findExercises({ user_id: user.id });
+    let exercises = await findExercises({ user_id: user.id });
+    if (req.query.from) {
+      const from = new Date(Date.parse(req.query.from));
+      exercises = exercises.filter((exercise) => exercise.date >= from);
+    }
+    if (req.query.to) {
+      const to = new Date(Date.parse(req.query.to));
+      exercises = exercises.filter((exercise) => exercise.date <= to);
+    }
+    if (req.query.limit) {
+      const limit = req.query.limit;
+      exercises = exercises.slice(0, limit);
+    }
     res.json({
       _id: user.id,
       username: user.username,
