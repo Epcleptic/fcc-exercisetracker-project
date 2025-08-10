@@ -5,6 +5,8 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 require("dotenv").config();
 
+// TODO: Add GET user's exercise log
+
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -27,9 +29,10 @@ const findUser = async (querry) => {
   return result;
 };
 
-const UNIQUE_USERS = true;
 const saveUser = async (data) => {
-  let user = UNIQUE_USERS ? await findUser({ username: data }) : null;
+  let user = process.env.UNIQUE_USERS
+    ? await findUser({ username: data })
+    : null;
   if (user) {
     return user;
   } else {
@@ -119,8 +122,7 @@ app.post("/api/users/:id/exercises", async (req, res) => {
   }
 });
 
-const USE_FIXED_PORT = true;
-const PORT = USE_FIXED_PORT ? 3000 : process.env.PORT || 3000;
+const PORT = process.env.USE_FIXED_PORT ? 3000 : process.env.PORT || 3000;
 const listener = app.listen(PORT, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
