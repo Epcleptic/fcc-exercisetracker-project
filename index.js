@@ -10,9 +10,6 @@ mongoose.connect(process.env.MONGO_URI, {
   useUnifiedTopology: true,
 });
 
-// User(username)
-// Exercise(:_id, description, duration, date)
-
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -30,13 +27,53 @@ const findUser = async (querry) => {
   return result;
 };
 
+const UNIQUE_USERS = true;
 const saveUser = async (data) => {
-  let user = await findUser({ username: data });
+  let user = UNIQUE_USERS ? await findUser({ username: data }) : null;
   if (user) {
     return user;
   } else {
     user = await User.create({ username: data });
     return user;
+  }
+};
+
+const exerciseSchema = new mongoose.Schema({
+  user_id: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+  duration: {
+    type: Number,
+    required: true,
+  },
+  date: {
+    type: Date,
+    required: true,
+  },
+});
+
+const Exercise = mongoose.model("Exercise", exerciseSchema);
+
+const findExercise = async (querry) => {
+  const result = await Exercise.findOne(querry, (err, data) => {
+    if (err) return console.error(err);
+    return data;
+  });
+  return result;
+};
+
+const saveExercise = async (data) => {
+  let exercise = await findExercise(data);
+  if (exercise) {
+    return exercise;
+  } else {
+    exercise = await Exercise.create(data);
+    return exercise;
   }
 };
 
@@ -61,6 +98,29 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
-const listener = app.listen(process.env.PORT || 3000, () => {
+app.post("/api/users/:id/exercises", async (req, res) => {
+  const user = await findUser({ _id: req.params.id });
+  if (user) {
+    const exercise = await saveExercise({
+      user_id: req.params.id,
+      description: req.body.description,
+      duration: Number(req.body.duration),
+      date: new Date(Date.parse(req.body.date)),
+    });
+    if (exercise) {
+      res.json({
+        _id: exercise.id,
+        username: user.username,
+        date: exercise.date.toString().split(" ").slice(0, 4).join(" "),
+        duration: exercise.duration,
+        description: exercise.description,
+      });
+    }
+  }
+});
+
+const USE_FIXED_PORT = true;
+const PORT = USE_FIXED_PORT ? 3000 : process.env.PORT || 3000;
+const listener = app.listen(PORT, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
